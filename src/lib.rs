@@ -1,26 +1,11 @@
-use std::{collections::HashMap, hash::Hash};
 
-#[derive(Default)]
-pub struct KvStore {
-    store: HashMap<String, String>,
-}
+use anyhow::{Result as AnyHowResult};
 
-impl KvStore {
-    pub fn new() -> Self {
-        KvStore {
-            store: HashMap::new(),
-        }
-    }
+mod kvs_error;
+mod core;
+mod command;
 
-    pub fn set(&mut self, key: String, value: String) {
-        _ = self.store.insert(key, value)
-    }
-
-    pub fn get(&self, key: String) -> Option<String> {
-        self.store.get(&key).cloned()
-    }
-
-    pub fn remove(&mut self, key: String) {
-        _ = self.store.remove(&key)
-    }
-}
+pub type Result<T> = AnyHowResult<T, kvs_error::KvsError>;
+pub use crate::core::KvStore;
+pub use crate::command::Command;
+pub use crate::kvs_error::KvsError;

@@ -1,3 +1,4 @@
+use std::env::current_dir;
 use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser)]
@@ -5,7 +6,7 @@ use clap::{Parser, Subcommand};
 #[clap(author, version, about = "A key-value store", long_about = None)]
 struct Cli {
     #[clap(subcommand)]
-    comamnd: Commands,
+    command: Commands,
 }
 
 #[derive(Debug, Subcommand)]
@@ -22,26 +23,40 @@ enum Commands {
 
 fn main() {
     let args = Cli::parse();
+    // println!("command: {:#?}", &args.command);
 
-    let store = kvs::KvStore::new();
+    let path = current_dir().unwrap();
+    let mut store = kvs::KvStore::open(path).unwrap();
 
-    match args.comamnd {
+    let result = match args.command {
         Commands::Get { key } => {
-            println!("get key: {key}");
-            eprint!("unimplemented");
-            std::process::exit(1);
+            store.get(key).and_then(|v| {
+                if v.is_none() {
+                    println!("Key not found");
+                } else {
+                    println!("{}", v.unwrap());
+                }
+                Ok(())
+            })
         }
         Commands::Set { key, value } => {
-            println!("set key {key}, value {value}");
-            eprint!("unimplemented");
-            std::process::exit(1);
+            store.set(key, value)
         }
         Commands::Remove { key } => {
-            println!("remove key {key}");
-            eprint!("unimplemented");
-            std::process::exit(1);
+            // println!("remove key {key}");
+            store.remove(key)
         }
-    }
+    };
 
-    println!("Hello, World!");
+    if let Err(e) = result {
+        match e {
+            kvs::KvsError::KeyNotFound => {
+                println!("Key not found");
+            }
+            _ => {
+                panic!("Error: {}", &e);
+            }
+        }
+        std::process::exit(1);
+    }
 }
