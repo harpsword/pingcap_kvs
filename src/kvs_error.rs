@@ -1,15 +1,12 @@
 use thiserror::Error;
 
-
-
-
 #[derive(Error, Debug)]
 pub enum KvsError {
     #[error("example")]
     ExampleError,
 
     #[error("serde_json failed, error: {source:?}")]
-    SerdeJsonError{
+    SerdeJsonError {
         #[from]
         source: serde_json::Error,
     },

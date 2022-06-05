@@ -1,5 +1,5 @@
-use std::env::current_dir;
 use clap::{Parser, Subcommand};
+use std::env::current_dir;
 
 #[derive(Debug, Parser)]
 #[clap(name = "kvs")]
@@ -29,19 +29,15 @@ fn main() {
     let mut store = kvs::KvStore::open(path).unwrap();
 
     let result = match args.command {
-        Commands::Get { key } => {
-            store.get(key).and_then(|v| {
-                if v.is_none() {
-                    println!("Key not found");
-                } else {
-                    println!("{}", v.unwrap());
-                }
-                Ok(())
-            })
-        }
-        Commands::Set { key, value } => {
-            store.set(key, value)
-        }
+        Commands::Get { key } => store.get(key).and_then(|v| {
+            if v.is_none() {
+                println!("Key not found");
+            } else {
+                println!("{}", v.unwrap());
+            }
+            Ok(())
+        }),
+        Commands::Set { key, value } => store.set(key, value),
         Commands::Remove { key } => {
             // println!("remove key {key}");
             store.remove(key)
