@@ -1,5 +1,6 @@
 use std::{collections::HashMap, hash::Hash};
 
+#[derive(Default)]
 pub struct KvStore {
     store: HashMap<String, String>,
 }
@@ -16,7 +17,7 @@ impl KvStore {
     }
 
     pub fn get(&self, key: String) -> Option<String> {
-        self.store.get(&key).map(|v| v.clone())
+        self.store.get(&key).cloned()
     }
 
     pub fn remove(&mut self, key: String) {
