@@ -1,12 +1,12 @@
 [package]
 name = "kvs"
 version = "0.1.0"
-authors = ["Yilin Chen <sticnarf@gmail.com>"]
+authors = ["Yanglong Yu <harpswordyyl@gmail.com>"]
 description = "A key-value store"
 edition = "2018"
 
 [dependencies]
-clap = "2.32.0"
+clap = { version = "3.1.18", features = ["derive"] }
 
 [dev-dependencies]
 assert_cmd = "0.11.0"
