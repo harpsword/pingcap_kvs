@@ -1,6 +1,14 @@
 #![deny(missing_docs)]
+#![feature(return_position_impl_trait_in_trait)]
 //! A simple key/value store.
 
 mod kv;
 
-pub use kv::KvStore;
+mod error;
+mod result;
+
+pub use kv::KvStorage;
+pub use result::Result;
+
+/// standard kv store
+pub type KvStore = kv::BaseKvStore;
