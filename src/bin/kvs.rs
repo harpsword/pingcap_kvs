@@ -1,9 +1,11 @@
 use std::env::current_dir;
+use std::process::exit;
 
 use clap::{Parser, Subcommand};
 use kvs::KvStorage;
 use kvs::Result;
 use serde::de::value;
+use tracing::debug;
 use tracing::{event, info, Level};
 
 #[derive(Parser)]
@@ -35,11 +37,11 @@ fn main() {
         let mut kv_store = kvs::KvStore::open(current_dir()?)?;
         match &cli.command {
             Commands::Set { key, value } => {
-                info!("set key: {}, value: {}", key, value);
+                debug!("set key: {}, value: {}", key, value);
                 kv_store.set(key.to_owned(), value.to_owned())
             }
             Commands::Get { key } => {
-                event!(Level::INFO, "key: {}", key);
+                debug!("key: {}", key);
                 let value = kv_store.get(key.to_string())?;
                 match value {
                     Some(value) => {
@@ -53,9 +55,13 @@ fn main() {
                 }
             }
             Commands::Rm { key } => {
-                event!(Level::INFO, "rm key: {}", key);
+                debug!("rm key: {}", key);
                 kv_store.remove(key.to_string())
             }
         }
     }();
+    if let Err(e) = result {
+        println!("{}", e);
+        exit(1);
+    }
 }

@@ -1,6 +1,5 @@
 use std::{
     io::{BufWriter, Read, Write},
-    process::CommandArgs,
 };
 
 use crate::{error::CustomizedError, Result};
@@ -50,8 +49,8 @@ impl SerdeJsonCodec {
         return SerdeJsonCodec {};
     }
 
+    /// todo, need to support byte_offset
     pub fn decode_from_reader<R: Read>(
-        &self,
         reader: R,
     ) -> impl Iterator<Item = CommandParseResult> {
         let a = serde_json::Deserializer::from_reader(reader).into_iter::<Command>();

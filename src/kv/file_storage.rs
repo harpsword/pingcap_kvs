@@ -1,4 +1,4 @@
-use tracing::info;
+use tracing::{info, debug};
 
 use crate::Result;
 use std::fs::OpenOptions;
@@ -31,12 +31,17 @@ pub struct BaseFileStorage {
 }
 
 impl BaseFileStorage {
+
+    pub fn get_reader(&mut self) -> &mut (impl Read+Seek) {
+        &mut self.reader
+    }
+
     pub fn open(path: impl Into<PathBuf>) -> Result<Self> {
         let folder_path = path.into();
-        let file_path = folder_path.join("1.data");
+        let file_path = folder_path.join("1.log");
         std::fs::create_dir_all(&folder_path)?;
 
-        info!("file_path: {:?}", &file_path);
+        debug!("file_path: {:?}", &file_path);
 
         let write_file = OpenOptions::new()
             .create(true)
@@ -45,21 +50,20 @@ impl BaseFileStorage {
             .open(&file_path)?;
         Ok(Self {
             reader: BufReaderWithPos::new(File::open(&file_path)?)?,
-            // todo fix it, using writable file open option
             writer: BufWriterWithPos::new(write_file)?,
             folder_path: folder_path,
         })
     }
 
-    pub fn write(&mut self, data: Vec<u8>) -> Result<LogPointer> {
+    pub fn write_data(&mut self, data: Vec<u8>) -> Result<LogPointer> {
         let len = self.writer.write(&data)?;
         Ok(LogPointer {
-            offset: self.writer.pos,
+            offset: self.writer.pos - len as u64,
             len: len as u64,
         })
     }
 
-    pub fn read(&mut self, log_pointer: &LogPointer) -> Result<Vec<u8>> {
+    pub fn read_by_log_pointer(&mut self, log_pointer: &LogPointer) -> Result<Vec<u8>> {
         if self.reader.pos != log_pointer.offset {
             self.reader.seek(SeekFrom::Start(log_pointer.offset))?;
         }
@@ -123,7 +127,7 @@ where
     W: Write + Seek,
 {
     pub fn new(mut inner: W) -> Result<Self> {
-        let current_pos = inner.seek(SeekFrom::Current(0))?;
+        let current_pos = inner.seek(SeekFrom::End(0))?;
         Ok(Self {
             writer: inner,
             pos: current_pos,
