@@ -1,4 +1,4 @@
-use tracing::{info, debug};
+use tracing::debug;
 
 use crate::Result;
 use std::fs::OpenOptions;
@@ -31,8 +31,8 @@ pub struct BaseFileStorage {
 }
 
 impl BaseFileStorage {
-
-    pub fn get_reader(&mut self) -> &mut (impl Read+Seek) {
+    // TODO support multi reader
+    pub fn get_reader(&mut self) -> &mut (impl Read + Seek) {
         &mut self.reader
     }
 

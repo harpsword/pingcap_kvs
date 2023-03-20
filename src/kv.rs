@@ -2,13 +2,19 @@ mod codec;
 mod command;
 mod file_storage;
 
-use tracing::{info, debug};
+use tracing::{debug, info};
 
 use self::{command::Command, file_storage::LogPointer};
-use crate::{error::CustomizedError, result::Result, kv::command::{Set, Remove}};
+use crate::{
+    error::CustomizedError,
+    kv::command::{Remove, Set},
+    result::Result,
+};
 use std::{
-    collections::{BTreeMap},
-    path::PathBuf, io::{BufReader, Seek, Read, SeekFrom}, fs::File,
+    collections::BTreeMap,
+    fs::File,
+    io::{BufReader, Read, Seek, SeekFrom},
+    path::PathBuf,
 };
 
 /// export
@@ -97,8 +103,12 @@ impl KvStorage for BaseKvStore {
     }
 }
 
-/// load the whole log file and get the index 
-fn load_file_data_to_index<R: Seek+Read>(reader: &mut R, index: &mut BTreeMap<String, LogPointer>) -> Result<()> {
+/// load the whole log file and get the index
+/// todo using codec's function
+fn load_file_data_to_index<R: Seek + Read>(
+    reader: &mut R,
+    index: &mut BTreeMap<String, LogPointer>,
+) -> Result<()> {
     reader.seek(SeekFrom::Start(0))?;
 
     let mut stream = serde_json::Deserializer::from_reader(reader).into_iter::<Command>();
@@ -107,16 +117,19 @@ fn load_file_data_to_index<R: Seek+Read>(reader: &mut R, index: &mut BTreeMap<St
     while let Some(command) = stream.next() {
         let new_pos = stream.byte_offset() as u64;
         match command? {
-            Command::Set(Set{key, ..}) => {
+            Command::Set(Set { key, .. }) => {
                 debug!("key: {:?}, pos: {}, new_pos: {}", &key, pos, new_pos);
-                index.insert(key, LogPointer { 
-                    offset: pos, 
-                    len: new_pos - pos, 
-                });
-            },
-            Command::Remove(Remove{key}) => {
+                index.insert(
+                    key,
+                    LogPointer {
+                        offset: pos,
+                        len: new_pos - pos,
+                    },
+                );
+            }
+            Command::Remove(Remove { key }) => {
                 index.remove(&key);
-            },
+            }
         }
         pos = new_pos;
     }
