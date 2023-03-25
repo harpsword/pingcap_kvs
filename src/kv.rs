@@ -2,6 +2,7 @@ mod codec;
 mod command;
 mod file_storage;
 
+use tokio::sync::Mutex;
 use tracing::{debug, info};
 
 use self::{command::Command, file_storage::LogPointer};
@@ -13,7 +14,7 @@ use crate::{
 use std::{
     collections::BTreeMap,
     io::{Read, Seek, SeekFrom},
-    path::PathBuf,
+    path::PathBuf, sync::{Arc},
 };
 
 /// export
@@ -36,6 +37,9 @@ pub trait KvsEngine {
     where
         Self: Sized;
 }
+
+/// asdf
+pub struct AsyncKvStore(pub Arc<Mutex<KvStore>>);
 
 /// BaseKvStore is a kvs store
 pub struct KvStore {

@@ -13,7 +13,7 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    #[arg(long, default_value="127.0.0.1")]
+    #[arg(long, default_value = "127.0.0.1")]
     addr: String,
 }
 

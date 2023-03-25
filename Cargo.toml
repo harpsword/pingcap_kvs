@@ -15,6 +15,35 @@ thiserror = "1.0.30"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
+volo-gen = { path = "./volo-gen" }
+
+volo.workspace = true
+volo-thrift.workspace = true
+pilota.workspace = true
+
+anyhow.workspace = true
+async-trait.workspace = true
+tokio = { workspace = true, features = ["full"] }
+
+[workspace]
+members = ["volo-gen"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+
+[workspace.dependencies]
+# we recommend to use the latest framework version for new features and bug fixes
+volo = "*"
+volo-build = "*"
+volo-thrift = "*"
+pilota = "*"
+
+anyhow = "1"
+async-trait = "0.1"
+tokio = "1"
+
+
 [dev-dependencies]
 assert_cmd = "0.11"
 criterion = "0.3"

@@ -12,3 +12,9 @@
 1. 对外的 get, set, rm 接口
 2. encode, decode， 可以用serde json
 3. 文件操作层
+
+
+TODO
+1. Mutex改成读写锁
+2. 减小锁的粒度
+
