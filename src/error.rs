@@ -1,4 +1,4 @@
-use std::io::{self, BufWriter, IntoInnerError};
+use std::{io::{self, BufWriter, IntoInnerError}, convert::Infallible};
 
 use thiserror::Error;
 
@@ -26,5 +26,11 @@ pub enum CustomizedError {
     BufWriterIntoInnerError {
         #[from]
         source: IntoInnerError<BufWriter<Vec<u8>>>,
+    },
+
+    #[error("network error: {}", .source)]
+    NetWorkError {
+        #[from]
+        source: volo_thrift::ResponseError<Infallible>,
     },
 }

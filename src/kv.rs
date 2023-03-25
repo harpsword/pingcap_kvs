@@ -2,6 +2,7 @@ mod codec;
 mod command;
 mod file_storage;
 
+use tokio::sync::Mutex;
 use tracing::{debug, info};
 
 use self::{command::Command, file_storage::LogPointer};
@@ -12,9 +13,8 @@ use crate::{
 };
 use std::{
     collections::BTreeMap,
-    fs::File,
-    io::{BufReader, Read, Seek, SeekFrom},
-    path::PathBuf,
+    io::{Read, Seek, SeekFrom},
+    path::PathBuf, sync::{Arc},
 };
 
 /// export
@@ -22,7 +22,7 @@ pub use crate::kv::codec::SerdeJsonCodec;
 pub use crate::kv::file_storage::BaseFileStorage;
 
 /// KvStorage
-pub trait KvStorage {
+pub trait KvsEngine {
     /// asdf
     fn set(&mut self, key: String, value: String) -> Result<()>;
 
@@ -38,8 +38,11 @@ pub trait KvStorage {
         Self: Sized;
 }
 
+/// asdf
+pub struct AsyncKvStore(pub Arc<Mutex<KvStore>>);
+
 /// BaseKvStore is a kvs store
-pub struct BaseKvStore {
+pub struct KvStore {
     file_storage: BaseFileStorage,
     // key -> log pointer
     index: BTreeMap<String, file_storage::LogPointer>,
@@ -47,7 +50,7 @@ pub struct BaseKvStore {
     codec: SerdeJsonCodec,
 }
 
-impl KvStorage for BaseKvStore {
+impl KvsEngine for KvStore {
     fn set(&mut self, key: String, value: String) -> Result<()> {
         let command = Command::Set(command::Set {
             key: key.clone(),

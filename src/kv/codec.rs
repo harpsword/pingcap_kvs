@@ -21,13 +21,6 @@ pub struct SerdeJsonCodec {}
 
 type CommandParseResult = Result<Command>;
 
-pub fn decode_from_reader<R: Read>(reader: R) -> impl Iterator<Item = CommandParseResult> {
-    // a is an Iterator of std::result::Result<Command, serde_json::error::Error>
-    let a = serde_json::Deserializer::from_reader(reader).into_iter::<Command>();
-    let b = a.map(|v| v.map_err(|err| CustomizedError::from(err)));
-    b
-}
-
 impl SerdeJsonCodec {
     pub fn encode(&self, commands: Vec<Command>) -> Result<Vec<u8>> {
         let res = Vec::new();
