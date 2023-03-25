@@ -7,8 +7,8 @@ mod kv;
 mod error;
 mod result;
 
-pub use kv::KvStorage;
+pub use kv::KvsEngine;
 pub use result::Result;
 
 /// standard kv store
-pub type KvStore = kv::BaseKvStore;
+pub type KvStore = kv::KvStore;

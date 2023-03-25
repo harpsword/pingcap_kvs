@@ -4,7 +4,6 @@ use std::process::exit;
 use clap::{Parser, Subcommand};
 use kvs::KvsEngine;
 use kvs::Result;
-use serde::de::value;
 use tracing::debug;
 use tracing::{event, info, Level};
 
@@ -13,6 +12,9 @@ use tracing::{event, info, Level};
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+
+    #[arg(long, default_value="127.0.0.1")]
+    addr: String,
 }
 
 #[derive(Subcommand)]
@@ -32,6 +34,8 @@ fn main() {
     init_tracing();
 
     let cli = Cli::parse();
+
+    info!("{}", cli.addr);
 
     let result = || -> Result<()> {
         let mut kv_store = kvs::KvStore::open(current_dir()?)?;
