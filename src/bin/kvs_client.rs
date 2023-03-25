@@ -1,9 +1,13 @@
+#![feature(async_closure)]
+
 use std::env::current_dir;
+use std::net::SocketAddr;
 use std::process::exit;
 
 use clap::{Parser, Subcommand};
 use kvs::KvsEngine;
 use kvs::Result;
+use pilota::lazy_static::lazy_static;
 use tracing::debug;
 use tracing::{event, info, Level};
 
@@ -13,7 +17,7 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    #[arg(long, default_value = "127.0.0.1")]
+    #[arg(long, default_value = "127.0.0.1:8080")]
     addr: String,
 }
 
@@ -26,44 +30,49 @@ enum Commands {
 
 fn init_tracing() {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
+        .with_max_level(tracing::Level::DEBUG)
         .init();
 }
 
-fn main() {
+#[volo::main]
+async fn main() {
     init_tracing();
 
     let cli = Cli::parse();
-
     info!("{}", cli.addr);
 
-    let result = || -> Result<()> {
-        let mut kv_store = kvs::KvStore::open(current_dir()?)?;
+    let addr: SocketAddr = cli.addr.parse().unwrap();
+    let client = volo_gen::kvs::KvsServiceClientBuilder::new("kvs")
+        .address(addr)
+        .build();
+
+
+    let result = async || -> Result<()> {
         match &cli.command {
             Commands::Set { key, value } => {
                 debug!("set key: {}, value: {}", key, value);
-                kv_store.set(key.to_owned(), value.to_owned())
+                let req = volo_gen::kvs::SetRequest{key: key.to_owned().into(), value: value.to_owned().into()};
+                let resp = client.set(req).await?;
+                debug!("set response: {:?}", &resp);
+                Ok(())
             }
             Commands::Get { key } => {
                 debug!("key: {}", key);
-                let value = kv_store.get(key.to_string())?;
-                match value {
-                    Some(value) => {
-                        println!("{}", value);
-                        Ok(())
-                    }
-                    None => {
-                        println!("Key not found");
-                        Ok(())
-                    }
-                }
+                let req = volo_gen::kvs::GetRequest{key: key.to_owned().into()};
+                let resp = client.get(req).await?;
+                debug!("get response: {:?}", &resp);
+                Ok(())
             }
             Commands::Rm { key } => {
                 debug!("rm key: {}", key);
-                kv_store.remove(key.to_string())
+                let req = volo_gen::kvs::RemoveRequest{key: key.to_owned().into()};
+                let resp = client.remove(req).await?;
+                debug!("remove response: {:?}", &resp);
+                Ok(())
             }
         }
-    }();
+    }().await;
+
     if let Err(e) = result {
         println!("{}", e);
         exit(1);
